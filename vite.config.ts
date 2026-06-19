@@ -1,6 +1,22 @@
 import { defineConfig, PluginOption } from "vite";
 import { enterDevPlugin, enterProdPlugin } from "vite-plugin-enter-dev";
 import path from "path";
+import fs from "fs";
+
+function copyIndexTo404(): PluginOption {
+  return {
+    name: "copy-index-to-404",
+    closeBundle() {
+      const dist = path.resolve(__dirname, "dist");
+      if (fs.existsSync(path.join(dist, "index.html"))) {
+        fs.copyFileSync(
+          path.join(dist, "index.html"),
+          path.join(dist, "404.html")
+        );
+      }
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const plugins = [...enterProdPlugin()];
@@ -27,7 +43,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    plugins: plugins.filter(Boolean) as PluginOption[],
+    plugins: [...plugins.filter(Boolean), copyIndexTo404()] as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
